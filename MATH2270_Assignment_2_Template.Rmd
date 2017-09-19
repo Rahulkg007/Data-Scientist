@@ -1,0 +1,31 @@
+---
+title: "MATH2270 Assignment 2"
+subtitle: "Visualising Open Data"
+output: html_notebook
+---
+
+## Student Details
+
+* Student Name (s3000000)
+
+```{r}
+# Load your packages
+```
+
+## Data
+
+```{r}
+# Load your data and prepare for visualisation
+```
+
+
+## Visualisation
+
+```{r}
+# Visualise Your Data
+```
+
+Data Source
+https://insights.stackoverflow.com/survey/
+
+
