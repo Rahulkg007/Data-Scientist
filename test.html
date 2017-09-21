@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title></title>
+
+<script src="test_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="test_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="test_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="test_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="test_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="test_files/navigation-1.1/tabsets.js"></script>
+<link href="test_files/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="test_files/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+  @media print {
+tr.vendorListHeading {
+    background-color: #1a4567 !important;
+    -webkit-print-color-adjust: exact; 
+}}
+
+@media print {
+    .vendorListHeading th {
+    color: white !important;
+}}
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+
+</div>
+
+
+<pre class="r"><code>require(ggplot2)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>require(dplyr)</code></pre>
+<pre><code>## Loading required package: dplyr</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>require(splitstackshape)</code></pre>
+<pre><code>## Loading required package: splitstackshape</code></pre>
+<pre><code>## Loading required package: data.table</code></pre>
+<pre><code>## -------------------------------------------------------------------------</code></pre>
+<pre><code>## data.table + dplyr code now lives in dtplyr.
+## Please library(dtplyr)!</code></pre>
+<pre><code>## -------------------------------------------------------------------------</code></pre>
+<pre><code>## 
+## Attaching package: &#39;data.table&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     between, first, last</code></pre>
+<pre class="r"><code>require(googleVis)</code></pre>
+<pre><code>## Loading required package: googleVis</code></pre>
+<pre><code>## Creating a generic function for &#39;toJSON&#39; from package &#39;jsonlite&#39; in package &#39;googleVis&#39;</code></pre>
+<pre><code>## 
+## Welcome to googleVis version 0.6.3
+## 
+## Please read Google&#39;s Terms of Use
+## before you start using the package:
+## https://developers.google.com/terms/
+## 
+## Note, the plot method of googleVis will by default use
+## the standard browser to display its output.
+## 
+## See the googleVis package vignettes for more details,
+## or visit http://github.com/mages/googleVis.
+## 
+## To suppress this message use:
+## suppressPackageStartupMessages(library(googleVis))</code></pre>
+<pre class="r"><code>op &lt;- options(gvis.plot.tag=&quot;chart&quot;)
+
+Data2017 = read.csv(&#39;data/survey_results_public.csv&#39;)
+Education = Data2017 %&gt;% select(Respondent,EducationTypes,SelfTaughtTypes,DeveloperType) %&gt;% 
+  filter(!is.na(EducationTypes) &amp; !is.na(EducationTypes) &amp; DeveloperType %in% 
+           c(&#39;Data scientist&#39;,&#39;Machine learning specialist&#39;,&#39;Developer with a statistics or mathematics background&#39;))
+
+Education_long &lt;- cSplit(indt = Education, 
+                         splitCols = c(&#39;EducationTypes&#39;,&#39;SelfTaughtTypes&#39;,&#39;DeveloperType&#39;), sep = &quot;;&quot;, direction = &quot;long&quot;)
+
+x = data.frame(table(Education_long$DeveloperType,Education_long$EducationTypes))
+y = data.frame(table(Education_long$EducationTypes,Education_long$SelfTaughtTypes))
+
+defaulter&lt;-rbind(x,y)
+
+# Plotting
+library(googleVis)
+sk2 &lt;- gvisSankey(defaulter, from=&#39;Var1&#39;, to=&#39;Var2&#39;, weight=&#39;Freq&#39;,
+                  options=list(height=400, width=600))
+
+print(sk2)</code></pre>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>
+SankeyID1a5413b31daf
+</title>
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+<style type="text/css">
+body {
+  color: #444444;
+  font-family: Arial,Helvetica,sans-serif;
+  font-size: 75%;
+  }
+  a {
+  color: #4D87C7;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+<p><!-- Sankey generated in R 3.3.3 by googleVis 0.6.3 package --> <!-- Wed Sep 20 17:46:38 2017 --></p>
+<!-- jsHeader -->
+<script type="text/javascript">
+ 
+// jsData 
+function gvisDataSankeyID1a5413b31daf () {
+var data = new google.visualization.DataTable();
+var datajson =
+[
+ [
+"Data scientist",
+"Bootcamp",
+3
+],
+[
+"Developer with a statistics or mathematics background",
+"Bootcamp",
+6
+],
+[
+"Machine learning specialist",
+"Bootcamp",
+1
+],
+[
+"Data scientist",
+"Coding competition",
+0
+],
+[
+"Developer with a statistics or mathematics background",
+"Coding competition",
+3
+],
+[
+"Machine learning specialist",
+"Coding competition",
+0
+],
+[
+"Data scientist",
+"Hackathon",
+2
+],
+[
+"Developer with a statistics or mathematics background",
+"Hackathon",
+1
+],
+[
+"Machine learning specialist",
+"Hackathon",
+0
+],
+[
+"Data scientist",
+"Industry certification",
+6
+],
+[
+"Developer with a statistics or mathematics background",
+"Industry certification",
+15
+],
+[
+"Machine learning specialist",
+"Industry certification",
+0
+],
+[
+"Data scientist",
+"On-the-job training",
+13
+],
+[
+"Developer with a statistics or mathematics background",
+"On-the-job training",
+52
+],
+[
+"Machine learning specialist",
+"On-the-job training",
+2
+],
+[
+"Data scientist",
+"Online course",
+70
+],
+[
+"Developer with a statistics or mathematics background",
+"Online course",
+115
+],
+[
+"Machine learning specialist",
+"Online course",
+13
+],
+[
+"Data scientist",
+"Open source contributions",
+3
+],
+[
+"Developer with a statistics or mathematics background",
+"Open source contributions",
+6
+],
+[
+"Machine learning specialist",
+"Open source contributions",
+0
+],
+[
+"Data scientist",
+"Part-time/evening course",
+12
+],
+[
+"Developer with a statistics or mathematics background",
+"Part-time/evening course",
+14
+],
+[
+"Machine learning specialist",
+"Part-time/evening course",
+1
+],
+[
+"Data scientist",
+"Self-taught",
+24
+],
+[
+"Developer with a statistics or mathematics background",
+"Self-taught",
+81
+],
+[
+"Machine learning specialist",
+"Self-taught",
+4
+],
+[
+"Bootcamp",
+"Built-in help",
+1
+],
+[
+"Coding competition",
+"Built-in help",
+12
+],
+[
+"Hackathon",
+"Built-in help",
+9
+],
+[
+"Industry certification",
+"Built-in help",
+0
+],
+[
+"On-the-job training",
+"Built-in help",
+3
+],
+[
+"Online course",
+"Built-in help",
+1
+],
+[
+"Open source contributions",
+"Built-in help",
+10
+],
+[
+"Part-time/evening course",
+"Built-in help",
+2
+],
+[
+"Self-taught",
+"Built-in help",
+12
+],
+[
+"Bootcamp",
+"Company internal community",
+0
+],
+[
+"Coding competition",
+"Company internal community",
+1
+],
+[
+"Hackathon",
+"Company internal community",
+4
+],
+[
+"Industry certification",
+"Company internal community",
+1
+],
+[
+"On-the-job training",
+"Company internal community",
+2
+],
+[
+"Online course",
+"Company internal community",
+0
+],
+[
+"Open source contributions",
+"Company internal community",
+4
+],
+[
+"Part-time/evening course",
+"Company internal community",
+0
+],
+[
+"Self-taught",
+"Company internal community",
+4
+],
+[
+"Bootcamp",
+"Friends network",
+0
+],
+[
+"Coding competition",
+"Friends network",
+0
+],
+[
+"Hackathon",
+"Friends network",
+1
+],
+[
+"Industry certification",
+"Friends network",
+0
+],
+[
+"On-the-job training",
+"Friends network",
+1
+],
+[
+"Online course",
+"Friends network",
+0
+],
+[
+"Open source contributions",
+"Friends network",
+8
+],
+[
+"Part-time/evening course",
+"Friends network",
+0
+],
+[
+"Self-taught",
+"Friends network",
+9
+],
+[
+"Bootcamp",
+"Non-Stack online communities",
+0
+],
+[
+"Coding competition",
+"Non-Stack online communities",
+12
+],
+[
+"Hackathon",
+"Non-Stack online communities",
+7
+],
+[
+"Industry certification",
+"Non-Stack online communities",
+2
+],
+[
+"On-the-job training",
+"Non-Stack online communities",
+5
+],
+[
+"Online course",
+"Non-Stack online communities",
+0
+],
+[
+"Open source contributions",
+"Non-Stack online communities",
+14
+],
+[
+"Part-time/evening course",
+"Non-Stack online communities",
+1
+],
+[
+"Self-taught",
+"Non-Stack online communities",
+17
+],
+[
+"Bootcamp",
+"Official documentation",
+4
+],
+[
+"Coding competition",
+"Official documentation",
+0
+],
+[
+"Hackathon",
+"Official documentation",
+0
+],
+[
+"Industry certification",
+"Official documentation",
+9
+],
+[
+"On-the-job training",
+"Official documentation",
+40
+],
+[
+"Online course",
+"Official documentation",
+132
+],
+[
+"Open source contributions",
+"Official documentation",
+0
+],
+[
+"Part-time/evening course",
+"Official documentation",
+13
+],
+[
+"Self-taught",
+"Official documentation",
+77
+],
+[
+"Bootcamp",
+"Other",
+0
+],
+[
+"Coding competition",
+"Other",
+1
+],
+[
+"Hackathon",
+"Other",
+2
+],
+[
+"Industry certification",
+"Other",
+0
+],
+[
+"On-the-job training",
+"Other",
+1
+],
+[
+"Online course",
+"Other",
+1
+],
+[
+"Open source contributions",
+"Other",
+1
+],
+[
+"Part-time/evening course",
+"Other",
+0
+],
+[
+"Self-taught",
+"Other",
+2
+],
+[
+"Bootcamp",
+"Stack Overflow Docs",
+1
+],
+[
+"Coding competition",
+"Stack Overflow Docs",
+9
+],
+[
+"Hackathon",
+"Stack Overflow Docs",
+9
+],
+[
+"Industry certification",
+"Stack Overflow Docs",
+1
+],
+[
+"On-the-job training",
+"Stack Overflow Docs",
+5
+],
+[
+"Online course",
+"Stack Overflow Docs",
+1
+],
+[
+"Open source contributions",
+"Stack Overflow Docs",
+5
+],
+[
+"Part-time/evening course",
+"Stack Overflow Docs",
+1
+],
+[
+"Self-taught",
+"Stack Overflow Docs",
+14
+],
+[
+"Bootcamp",
+"Stack Overflow Q&A",
+9
+],
+[
+"Coding competition",
+"Stack Overflow Q&A",
+24
+],
+[
+"Hackathon",
+"Stack Overflow Q&A",
+15
+],
+[
+"Industry certification",
+"Stack Overflow Q&A",
+8
+],
+[
+"On-the-job training",
+"Stack Overflow Q&A",
+29
+],
+[
+"Online course",
+"Stack Overflow Q&A",
+5
+],
+[
+"Open source contributions",
+"Stack Overflow Q&A",
+24
+],
+[
+"Part-time/evening course",
+"Stack Overflow Q&A",
+6
+],
+[
+"Self-taught",
+"Stack Overflow Q&A",
+91
+],
+[
+"Bootcamp",
+"Textbook",
+1
+],
+[
+"Coding competition",
+"Textbook",
+9
+],
+[
+"Hackathon",
+"Textbook",
+3
+],
+[
+"Industry certification",
+"Textbook",
+5
+],
+[
+"On-the-job training",
+"Textbook",
+15
+],
+[
+"Online course",
+"Textbook",
+1
+],
+[
+"Open source contributions",
+"Textbook",
+6
+],
+[
+"Part-time/evening course",
+"Textbook",
+1
+],
+[
+"Self-taught",
+"Textbook",
+37
+],
+[
+"Bootcamp",
+"Trade book",
+6
+],
+[
+"Coding competition",
+"Trade book",
+8
+],
+[
+"Hackathon",
+"Trade book",
+3
+],
+[
+"Industry certification",
+"Trade book",
+9
+],
+[
+"On-the-job training",
+"Trade book",
+39
+],
+[
+"Online course",
+"Trade book",
+33
+],
+[
+"Open source contributions",
+"Trade book",
+11
+],
+[
+"Part-time/evening course",
+"Trade book",
+22
+],
+[
+"Self-taught",
+"Trade book",
+70
+],
+[
+"Bootcamp",
+"Tutoring/mentoring",
+0
+],
+[
+"Coding competition",
+"Tutoring/mentoring",
+1
+],
+[
+"Hackathon",
+"Tutoring/mentoring",
+1
+],
+[
+"Industry certification",
+"Tutoring/mentoring",
+0
+],
+[
+"On-the-job training",
+"Tutoring/mentoring",
+1
+],
+[
+"Online course",
+"Tutoring/mentoring",
+0
+],
+[
+"Open source contributions",
+"Tutoring/mentoring",
+0
+],
+[
+"Part-time/evening course",
+"Tutoring/mentoring",
+1
+],
+[
+"Self-taught",
+"Tutoring/mentoring",
+2
+] 
+];
+data.addColumn('string','Var1');
+data.addColumn('string','Var2');
+data.addColumn('number','Freq');
+data.addRows(datajson);
+return(data);
+}
+ 
+// jsDrawChart
+function drawChartSankeyID1a5413b31daf() {
+var data = gvisDataSankeyID1a5413b31daf();
+var options = {};
+options["width"] = 600;
+options["height"] = 400;
+
+    var chart = new google.visualization.Sankey(
+    document.getElementById('SankeyID1a5413b31daf')
+    );
+    chart.draw(data,options);
+    
+
+}
+  
+ 
+// jsDisplayChart
+(function() {
+var pkgs = window.__gvisPackages = window.__gvisPackages || [];
+var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
+var chartid = "sankey";
+  
+// Manually see if chartid is in pkgs (not all browsers support Array.indexOf)
+var i, newPackage = true;
+for (i = 0; newPackage && i < pkgs.length; i++) {
+if (pkgs[i] === chartid)
+newPackage = false;
+}
+if (newPackage)
+  pkgs.push(chartid);
+  
+// Add the drawChart function to the global list of callbacks
+callbacks.push(drawChartSankeyID1a5413b31daf);
+})();
+function displayChartSankeyID1a5413b31daf() {
+  var pkgs = window.__gvisPackages = window.__gvisPackages || [];
+  var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
+  window.clearTimeout(window.__gvisLoad);
+  // The timeout is set to 100 because otherwise the container div we are
+  // targeting might not be part of the document yet
+  window.__gvisLoad = setTimeout(function() {
+  var pkgCount = pkgs.length;
+  google.load("visualization", "1", { packages:pkgs, callback: function() {
+  if (pkgCount != pkgs.length) {
+  // Race condition where another setTimeout call snuck in after us; if
+  // that call added a package, we must not shift its callback
+  return;
+}
+while (callbacks.length > 0)
+callbacks.shift()();
+} });
+}, 100);
+}
+ 
+// jsFooter
+</script>
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartSankeyID1a5413b31daf"></script>
+<!-- divChart -->
+<div id="SankeyID1a5413b31daf" style="width: 600; height: 400;">
+
+</div>
+<div>
+<span>Data: defaulter • Chart ID: <a href="Chart_SankeyID1a5413b31daf.html">SankeyID1a5413b31daf</a> • <a href="https://github.com/mages/googleVis">googleVis-0.6.3</a></span><br /> <!-- htmlFooter --> <span> R version 3.3.3 (2017-03-06) • <a href="https://developers.google.com/terms/">Google Terms of Use</a> • <a href="https://google-developers.appspot.com/chart/interactive/docs/gallery/sankey">Documentation and Data Policy</a> </span>
+</div>
+</body>
+</html>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
