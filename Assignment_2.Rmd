@@ -1,4 +1,32 @@
-## Load Libraries
+---
+title: "MATH2270 Assignment 2"
+date: "September 24, 2017"
+subtitle: Visualising Open Data
+output:
+  pdf_document: 
+    highlight: default
+bibliography: references.bib
+---
+
+```{r global_options, include=FALSE}
+library(knitr)
+opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+## Student Details
+
+* Rahul Gupta (s3635232)
+
+## Introduction
+
+**Data Scientist: The Sexiest Job of the 21st Century**
+
+In 2012, Harvard Business Review [@HBR] published an article *Data Scientist: The Sexiest Job of the 21st Century*. In the recent years, Machine learning and Artificial Intelligent are in high demand. All the major industries like Facebook, Google, Microsoft, Amazon, LinkedIn, and Twitter are implementing data science into their environment. Data Scientist work includes handling large data sets, clean them and make analysis. They help decision makers from Ad Hoc to ongoing conversation with data. There wasn't much data on this statement, so I analyzed the data from Stack Overflow [@StackOverflow] and Google trends [@GoogleTrends] to look into Data Science.
+
+
+```{r echo=TRUE}
+
+# Load Libraries
 require(ggplot2)
 require(dplyr)
 require(splitstackshape)
@@ -7,20 +35,21 @@ library(cowplot)
 require(reshape2)
 require(lubridate)
 
-## Set Working Directory
+# Set Working Directory
 setwd("C:/Users/rahul/Google Drive/RMIT/Semester 2/Data Visualization/Assignment 2")
 
-## Read files
+# Read files
 Data2017 = read.csv('data/survey_results_public.csv')
 
-## --------------------------
-## Mean Salary for Developers
-## --------------------------
+# --------------------------
+# Mean Salary for Developers
+# --------------------------
 
 # Data Cleaning
 Salary = Data2017 %>% 
   select(Respondent,Country,DeveloperType,Salary) %>% 
-  filter(!is.na(DeveloperType) & !is.na(Salary) & Country %in% c('United States','United Kingdom','Australia'))
+  filter(!is.na(DeveloperType) & !is.na(Salary) & 
+           Country %in% c('United States','United Kingdom','Australia'))
 
 Salary_long <- cSplit(Salary, "DeveloperType", sep = ";", direction = "long")
 
@@ -43,9 +72,10 @@ Salary_Summary$DeveloperType = Salary_Summary$DeveloperType %>%
 
 # Adding Color Element
 Salary_Summary$colour = ifelse(Salary_Summary$DeveloperType == 'Data scientist' | 
-                                 Salary_Summary$DeveloperType == 'Machine learning specialist' |
-                                 Salary_Summary$DeveloperType == 'Developer with a statistics or mathematics background',
-                               "positive","negative")
+                      Salary_Summary$DeveloperType == 'Machine learning specialist' |
+                      Salary_Summary$DeveloperType == 
+                        'Developer with a statistics or mathematics background',
+                      "positive","negative")
 
 # Plotting
 p1 = ggplot(Salary_Summary,aes(DeveloperType,MeanSalary,label="",fill = colour)) + 
@@ -56,7 +86,7 @@ p1 = ggplot(Salary_Summary,aes(DeveloperType,MeanSalary,label="",fill = colour))
   ggtitle('Average Salary of Software Developer, 2017') +
   xlab('') +
   ylab('Mean Salary in US Dollars') +
-  labs(subtitle = 'Salary data from US, UK and Australia',
+  labs(subtitle = 'Salary data of 5244 Responses from US, UK and Australia',
        caption="Source - Stack Overflow Annual Developer Survey, 2017") +
   theme_minimal() +
   theme(plot.caption = element_text(size = 9,color = '#666666',face = "italic"),
@@ -68,11 +98,13 @@ p1 = ggplot(Salary_Summary,aes(DeveloperType,MeanSalary,label="",fill = colour))
 
 # Data Cleaning
 Languages = Data2017 %>% select(Respondent,Country,HaveWorkedLanguage,DeveloperType) %>% 
-  filter(!is.na(HaveWorkedLanguage) & DeveloperType %in% c('Data scientist','Machine learning specialist'))
+  filter(!is.na(HaveWorkedLanguage) & DeveloperType %in% 
+           c('Data scientist','Machine learning specialist'))
 
 
 Languages_long <- cSplit(indt = Languages, 
-                         splitCols = c('HaveWorkedLanguage'), sep = ";", direction = "long")
+                         splitCols = c('HaveWorkedLanguage'), 
+                         sep = ";", direction = "long")
 
 Languages_summary = Languages_long %>% 
   group_by(HaveWorkedLanguage) %>% 
@@ -94,7 +126,7 @@ p2 = ggplot(Languages_summary,aes(HaveWorkedLanguage,Percentage)) +
   ggtitle('Top 10 Languages used by Data Scientist, 2017') +
   xlab('') +
   ylab('Percentage') +
-  labs(subtitle = 'Worked Languages from Data scientist and Machine learning specialist',
+  labs(subtitle = '176 Users, Languages worked on, Data scientist and Machine learning specialist',
        caption="Source - Stack Overflow Annual Developer Survey, 2017") +
   theme_minimal() +
   theme(plot.caption = element_text(size = 9,color = '#666666',face = "italic"),
@@ -107,10 +139,12 @@ p2 = ggplot(Languages_summary,aes(HaveWorkedLanguage,Percentage)) +
 # Data Cleaning
 Education = Data2017 %>% select(Respondent,EducationTypes,SelfTaughtTypes,DeveloperType) %>% 
   filter(!is.na(EducationTypes) & !is.na(EducationTypes) & DeveloperType %in% 
-           c('Data scientist','Machine learning specialist','Developer with a statistics or mathematics background'))
+           c('Data scientist','Machine learning specialist',
+             'Developer with a statistics or mathematics background'))
 
 Education_long <- cSplit(indt = Education, 
-                         splitCols = c('EducationTypes','SelfTaughtTypes','DeveloperType'), sep = ";", direction = "long")
+                         splitCols = c('EducationTypes','SelfTaughtTypes','DeveloperType'), 
+                         sep = ";", direction = "long")
 
 x = data.frame(table(Education_long$DeveloperType,Education_long$EducationTypes))
 y = data.frame(table(Education_long$EducationTypes,Education_long$SelfTaughtTypes))
@@ -120,21 +154,22 @@ defaulter<-rbind(x,y)
 # Plotting
 sk2 <- gvisSankey(defaulter, from='Var1', to='Var2', weight='Freq',
                   options=list(height=400, width=600))
-plot(sk2)
+# plot(sk2)
 
 ## ----------------------------------
 ## Time Series of Growth of Languages
-## Google Trend Data
 ## ----------------------------------
 
 # Read Data
-Timeline = read.csv('multiTimeline.csv')
+Timeline = read.csv('data/multiTimeline.csv')
 Timeline$Week = as.Date(Timeline$Week, "%d-%m-%y")
 
 # Convert to long Format
-Timeline.long = melt(Timeline, id.vars = 'Week', variable.name = 'Languages', value.name = 'Interest')
+Timeline.long = melt(Timeline, id.vars = 'Week', 
+                     variable.name = 'Languages', value.name = 'Interest')
 
-Timeline.Summary = Timeline.long %>% group_by(Year=floor_date(Week, "year"),Languages) %>%
+Timeline.Summary = Timeline.long %>% 
+  group_by(Year=floor_date(Week, "year"),Languages) %>%
   summarize(Interest=mean(Interest))
 
 # Plotting
@@ -145,7 +180,8 @@ p3 = ggplot(Timeline.Summary,aes(x=Year,y=Interest)) +
   ggtitle('Change in Language Interest Over Time, 2012 - 2017') +
   xlab('') +
   ylab('Interest Over time') +
-  labs(subtitle = 'Python Interest is increasing, R is Stagnant. However, Java and SQL are shrinking over time',
+  labs(subtitle = paste('Python Interest is increasing, R is Stagnant.',
+      'However, Java and SQL are shrinking over time'),
        caption="Source - Google Trends in Computers and Electronics, 2017") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -154,58 +190,22 @@ p3 = ggplot(Timeline.Summary,aes(x=Year,y=Interest)) +
         plot.caption = element_text(size = 9,color = '#666666',face = "italic"),
         plot.subtitle = element_text(color = '#333333',face = "italic")) +
   scale_x_date(date_breaks = '1 years',date_labels = '%Y')
+```
 
-# Combining all plots using Cow Plot
-plot_grid(p1, p2, p3,nrow = 2, ncol = 2, rel_widths = c(5,4))
-
-## ----------------------------------
-## Time Series of Growth of Languages
-## Stack Overflow Data
-## ----------------------------------
-
-Series2017 = Data2017 %>% select(Respondent,HaveWorkedLanguage) %>% 
-  filter(!is.na(HaveWorkedLanguage))
-
-Series_long = cSplit(indt = Series2017, splitCols = 'HaveWorkedLanguage', sep = ";", direction = "long")
-
-# Generic Function for all Datasets
-LanguageSummary = function(Series_long,InputYear) {
-  Summary = Series_long %>% 
-    group_by(HaveWorkedLanguage) %>% 
-    summarise(Freq = n()) %>%
-    mutate(Percentage = round(Freq/sum(Freq)*100,3), Year = InputYear) %>%
-    filter(HaveWorkedLanguage %in% c('Python','SQL','Java','R'))
-  return(Summary)
-}
-
-# Extract the value
-Summary2017 = LanguageSummary(Series_long,'2017')
+```{r, fig.height=12, fig.width=7, echo=TRUE}
+## Combining all plots
+plot_grid(p1, p2, p3,nrow = 3, ncol = 1)
+```
 
 
-# Data from 2016
-Data2016 = read.csv('data/2016 Stack Overflow Survey Results/2016 Stack Overflow Survey Responses.csv')
+![Method of Learning](Study Method.png)
 
-Series2016 = Data2016 %>% select(X,tech_do) %>% 
-  filter(!is.na(tech_do)) %>%
-  rename(Respondent = X, HaveWorkedLanguage = tech_do)
-Series_long = cSplit(indt = Series2016, splitCols = 'HaveWorkedLanguage', sep = ";", direction = "long")
-Summary2016 = LanguageSummary(Series_long,'2016')
+## Discussion
 
-# Data from 2015
+Data Scientist, Machine learning specialist and Statistician has the highest Average salary among other developers. The salaries of developers are collected by Stack Overflow Survey. Python, SQL, Java and R is the most used languages by Data Scientist. Based on the languages data, Google trends information is used to get Interest over time between these languages. Python popularity is increasing from 2012, while R is stagnant. However, SQL and Java popularity are declining over the years. 
 
-Data2015 = read.csv('data/2015 Stack Overflow Developer Survey Responses.csv',skip = 1)
+The Sankey Chart depict the method of learning by Data Scientist. Majority of proportion is dominant by Statistician and Mathematical background, followed by Data Scientist and Machine Learning Specialist. Self-Taught and Online courses are the major source of learning, followed by on job training and open source contribution. In self-taught category, majority of learning is contributed by official document, Stack Overflow and trade book.
 
-Series2015 = Data2015 %>% select(starts_with("Current.Lang"))
-x = paste()
-filter(!is.na(tech_do)) %>%
-  rename(Respondent = X, HaveWorkedLanguage = tech_do)
+# References
 
 
-Series_long = cSplit(indt = Series2016, splitCols = 'HaveWorkedLanguage', sep = ";", direction = "long")
-Summary2016 = LanguageSummary(Series_long,'2016')
-
-
-# Final Plot
-Summary = rbind(Summary2017,Summary2016)
-
-ggplot(Summary,aes(x=Year,y=Percentage)) + geom_line() + facet_wrap(~ HaveWorkedLanguage)
